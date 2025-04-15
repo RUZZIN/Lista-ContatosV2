@@ -1,0 +1,48 @@
+<div class="container">
+  <!-- Indicador de carregamento -->
+  <div *ngIf="carregando" class="loading">
+    Carregando contato...
+  </div>
+  
+  <!-- Mensagem de erro -->
+  <div *ngIf="erro" class="erro">
+    {{ erro }}
+  </div>
+
+  <!-- Detalhes do contato -->
+  <div *ngIf="contato && !carregando && !erro" class="contato-detalhe">
+    <h2>Detalhes do Contato</h2>
+    
+    <div class="contato-info">
+      <div class="info-item">
+        <span class="label">Nome:</span>
+        <span class="value">{{ contato.nome }}</span>
+      </div>
+      
+      <div class="info-item">
+        <span class="label">Email:</span>
+        <span class="value">{{ contato.email }}</span>
+      </div>
+      
+      <div class="info-item">
+        <span class="label">Telefone:</span>
+        <span class="value">{{ contato.telefone }}</span>
+      </div>
+    </div>
+    
+    <div class="actions">
+      <button class="btn-back" [routerLink]="['/contatos']">Voltar</button>
+      <button class="btn-edit" [routerLink]="['/contatos', contato.id, 'editar']">Editar</button>
+      <button class="btn-delete" (click)="removerContato()" [disabled]="excluindo">
+        <span *ngIf="!excluindo">Remover</span>
+        <span *ngIf="excluindo">Removendo...</span>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Estado vazio -->
+  <div *ngIf="!contato && !carregando && !erro" class="empty-state">
+    <p>Contato não encontrado</p>
+    <button [routerLink]="['/contatos']">Voltar para lista</button>
+  </div>
+</div>

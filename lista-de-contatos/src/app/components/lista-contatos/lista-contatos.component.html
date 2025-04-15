@@ -1,0 +1,46 @@
+<div class="container">
+  <h2>Lista de Contatos</h2>
+  
+  <div class="actions">
+    <button class="btn-add" [routerLink]="['/contatos/novo']">Adicionar Contato</button>
+  </div>
+  
+  <!-- Indicador de carregamento -->
+  <div *ngIf="carregando" class="loading">
+    Carregando contatos...
+  </div>
+  
+  <!-- Mensagem de erro -->
+  <div *ngIf="erro" class="erro">
+    {{ erro }}
+  </div>
+  
+  <!-- Estado vazio -->
+  <div *ngIf="!carregando && !erro && contatos.length === 0" class="empty-state">
+    Nenhum contato encontrado. Adicione seu primeiro contato!
+  </div>
+  
+  <!-- Tabela de contatos -->
+  <table *ngIf="!carregando && !erro && contatos.length > 0" class="contatos-table">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Email</th>
+        <th>Telefone</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let contato of contatos">
+        <td>{{ contato.nome }}</td>
+        <td>{{ contato.email }}</td>
+        <td>{{ contato.telefone }}</td>
+        <td class="acoes">
+          <button class="btn-view" [routerLink]="['/contatos', contato.id]">Ver</button>
+          <button class="btn-edit" [routerLink]="['/contatos', contato.id, 'editar']">Editar</button>
+          <button class="btn-delete" (click)="removerContato(contato.id)">Remover</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
