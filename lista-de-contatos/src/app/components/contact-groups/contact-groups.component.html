@@ -1,0 +1,56 @@
+<div class="container mt-4">
+  <h2>Gerenciar Grupos</h2>
+  
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <form (ngSubmit)="saveGroup()">
+        <div class="input-group">
+          <input 
+            type="text"
+            class="form-control"
+            placeholder="Nome do grupo"
+            [formControl]="groupFormControl">
+          <button 
+            type="submit" 
+            class="btn btn-primary" 
+            [disabled]="groupFormControl.invalid">
+            {{ editingGroup ? 'Atualizar' : 'Adicionar' }}
+          </button>
+          <button 
+            *ngIf="editingGroup" 
+            type="button" 
+            class="btn btn-secondary" 
+            (click)="cancelEditing()">
+            Cancelar
+          </button>
+        </div>
+        <div *ngIf="errorMessage" class="text-danger mt-2">
+          {{ errorMessage }}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          Grupos disponíveis
+        </div>
+        <ul class="list-group list-group-flush">
+          <li *ngFor="let group of groups" class="list-group-item d-flex justify-content-between align-items-center">
+            {{ group }}
+            <div>
+              <span class="badge bg-primary rounded-pill me-2">{{ groupCounts.get(group) || 0 }} contatos</span>
+              <button class="btn btn-sm btn-outline-primary me-1" (click)="startEditing(group)">Editar</button>
+              <button class="btn btn-sm btn-outline-danger" (click)="removeGroup(group)">Remover</button>
+            </div>
+          </li>
+          <li *ngIf="groups.length === 0" class="list-group-item text-center text-muted">
+            Nenhum grupo criado
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

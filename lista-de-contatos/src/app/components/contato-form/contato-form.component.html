@@ -51,6 +51,40 @@
         <div *ngIf="telefone.errors?.['required']">Telefone é obrigatório.</div>
       </div>
     </div>
+
+    <!-- Novo campo para marcar como favorito -->
+    <div class="form-group form-check">
+      <input 
+        type="checkbox" 
+        id="isFavorite" 
+        name="isFavorite"
+        [(ngModel)]="contato.isFavorite"
+        class="form-check-input">
+      <label class="form-check-label" for="isFavorite">Marcar como favorito</label>
+    </div>
+    
+    <!-- Novo campo para seleção de grupos -->
+    <div class="form-group">
+      <label>Grupos</label>
+      <div class="grupos-container">
+        <div *ngIf="availableGroups.length === 0" class="empty-grupos">
+          <p>Nenhum grupo disponível. <a routerLink="/grupos">Criar grupos</a></p>
+        </div>
+        <div *ngFor="let group of availableGroups" class="grupo-item">
+          <div class="grupo-checkbox">
+            <input 
+              type="checkbox"
+              [id]="'grupo-' + group"
+              [checked]="isGroupSelected(group)"
+              (change)="toggleGroup(group)">
+            <label [for]="'grupo-' + group">{{ group }}</label>
+          </div>
+        </div>
+        <div class="grupo-actions">
+          <a routerLink="/grupos" class="link-grupos">Gerenciar grupos</a>
+        </div>
+      </div>
+    </div>
     
     <div class="form-actions">
       <button type="button" routerLink="/contatos" [disabled]="enviando">Cancelar</button>

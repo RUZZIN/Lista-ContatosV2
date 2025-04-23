@@ -1,8 +1,51 @@
 <div class="container">
   <h2>Lista de Contatos</h2>
   
-  <div class="actions">
-    <button class="btn-add" [routerLink]="['/contatos/novo']">Adicionar Contato</button>
+  <div class="actions row mb-4">
+    <div class="col-md-4">
+      <button class="btn-add" [routerLink]="['/contatos/novo']">Adicionar Contato</button>
+      <button class="btn-groups" [routerLink]="['/grupos']">Gerenciar Grupos</button>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="col-md-8">
+      <div class="row">
+        <div class="col-md-5">
+          <div class="search-container">
+            <input 
+              type="text" 
+              [(ngModel)]="searchTerm"
+              placeholder="Buscar contatos..."
+              (keyup.enter)="searchContacts()">
+            <button (click)="searchContacts()">Buscar</button>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="dropdown">
+            <button class="btn-filter dropdown-toggle">
+              {{ selectedGroup ? 'Grupo: ' + selectedGroup : 'Todos os grupos' }}
+            </button>
+            <div class="dropdown-menu">
+              <a (click)="filterByGroup(null)" class="dropdown-item">Todos os grupos</a>
+              <div *ngFor="let group of availableGroups">
+                <a (click)="filterByGroup(group)" class="dropdown-item">{{ group }}</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-3">
+          <button 
+            class="btn-favorite" 
+            [class.active]="showOnlyFavorites"
+            (click)="toggleFavoriteFilter()">
+            <span *ngIf="!showOnlyFavorites">Mostrar favoritos</span>
+            <span *ngIf="showOnlyFavorites">Todos os contatos</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
   
   <!-- Indicador de carregamento -->
@@ -16,25 +59,46 @@
   </div>
   
   <!-- Estado vazio -->
-  <div *ngIf="!carregando && !erro && contatos.length === 0" class="empty-state">
-    Nenhum contato encontrado. Adicione seu primeiro contato!
+  <div *ngIf="!carregando && !erro && filteredContatos.length === 0" class="empty-state">
+    <p *ngIf="selectedGroup || showOnlyFavorites || searchTerm">
+      Nenhum contato encontrado com os filtros atuais.
+    </p>
+    <p *ngIf="!selectedGroup && !showOnlyFavorites && !searchTerm">
+      Nenhum contato encontrado. Adicione seu primeiro contato!
+    </p>
   </div>
   
   <!-- Tabela de contatos -->
-  <table *ngIf="!carregando && !erro && contatos.length > 0" class="contatos-table">
+  <table *ngIf="!carregando && !erro && filteredContatos.length > 0" class="contatos-table">
     <thead>
       <tr>
         <th>Nome</th>
         <th>Email</th>
         <th>Telefone</th>
+        <th>Grupos</th>
+        <th>Favorito</th>
         <th>Ações</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let contato of contatos">
+      <tr *ngFor="let contato of filteredContatos">
         <td>{{ contato.nome }}</td>
         <td>{{ contato.email }}</td>
         <td>{{ contato.telefone }}</td>
+        <td>
+          <span *ngIf="contato.groups && contato.groups.length > 0">
+            <span *ngFor="let group of contato.groups; let last = last" class="badge-group">
+              {{ group }}{{ !last ? ', ' : '' }}
+            </span>
+          </span>
+          <span *ngIf="!contato.groups || contato.groups.length === 0">-</span>
+        </td>
+        <td>
+          <button class="btn-star" (click)="toggleFavorite(contato, $event)">
+            <span *ngIf="contato.isFavorite" class="star-filled">★</span>
+            <span *ngIf="!contato.isFavorite" class="star-empty">☆</span>
+          </button>
+        </td>
         <td class="acoes">
           <button class="btn-view" [routerLink]="['/contatos', contato.id]">Ver</button>
           <button class="btn-edit" [routerLink]="['/contatos', contato.id, 'editar']">Editar</button>
@@ -43,4 +107,20 @@
       </tr>
     </tbody>
   </table>
+</div>
+
+<div class="lista-contatos">
+  <!-- Barra de busca e filtros... -->
+
+  <div *ngIf="errorMsg" class="alert alert-danger">
+    {{ errorMsg }}
+  </div>
+
+  <div *ngIf="!contatosFiltrados || contatosFiltrados.length === 0" class="sem-contatos">
+    <p>Nenhum contato encontrado.</p>
+  </div>
+
+  <ul class="contatos-lista" *ngIf="contatosFiltrados && contatosFiltrados.length > 0">
+    <!-- Lista de contatos... -->
+  </ul>
 </div>

@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
-import { catchError, Observable, throwError } from 'rxjs';
-import { Contato } from '../models/contato.model';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
-import { retry } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { isPlatformBrowser } from '@angular/common';
+import { Contato } from '../models/contato.model';
 
 @Injectable({
   providedIn: 'root'
@@ -10,15 +11,49 @@ import { retry } from 'rxjs/operators';
 export class ContatoService {
   // Alterando a URL para apontar para o servidor Spring Boot
   private apiUrl = 'http://localhost:8080/api/contatos';
+  private isBrowser: boolean;
 
   constructor(
-    private http: HttpClient
-  ) {}
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
+
+  // Use uma arrow function para preservar o contexto 'this'
+  private handleError = (error: HttpErrorResponse): Observable<never> => {
+    let errorMessage = 'Ocorreu um erro desconhecido';
+    
+    // Verificação segura para ambiente de servidor vs navegador
+    if (this.isBrowser) {
+      // Código específico para navegador
+      if (error.error instanceof ErrorEvent) {
+        // Erro do cliente
+        errorMessage = `Erro: ${error.error.message}`;
+      } else {
+        // Erro da API
+        errorMessage = `Código: ${error.status}, Mensagem: ${error.message}`;
+      }
+    } else {
+      // Código seguro para servidor
+      errorMessage = `Erro HTTP: ${error.status}, ${error.message}`;
+    }
+    
+    console.error(errorMessage);
+    return throwError(() => errorMessage);
+  }
 
   getContatos(): Observable<Contato[]> {
     return this.http.get<Contato[]>(this.apiUrl)
       .pipe(
-        retry(1), // Tenta uma vez mais em caso de falha
+        map(response => {
+          // Garantir que a resposta é um array
+          if (!Array.isArray(response)) {
+            console.error('API não retornou um array:', response);
+            return [];
+          }
+          return response;
+        }),
         catchError(this.handleError)
       );
   }
@@ -57,26 +92,5 @@ export class ContatoService {
 
     return this.http.get<Contato[]>(`${this.apiUrl}/buscar`, { params })
       .pipe(catchError(this.handleError));
-  }
-
-  private handleError = (error: HttpErrorResponse) => {
-    let errorMessage = 'Ocorreu um erro desconhecido!';
-
-    if (error.status === 0) {
-      // Erro de conexão ou CORS
-      errorMessage = 'Não foi possível conectar ao servidor. Verifique se o backend está rodando e se o CORS está configurado corretamente.';
-    } else if (error.error instanceof ErrorEvent) {
-      // Erro do lado do cliente
-      errorMessage = `Erro: ${error.error.message}`;
-    } else {
-      // Erro retornado pelo backend
-      errorMessage = `Código de erro: ${error.status}, Mensagem: ${error.message}`;
-      if (error.error && typeof error.error === 'string') {
-        errorMessage += ` - Detalhes: ${error.error}`;
-      }
-    }
-
-    console.error(errorMessage);
-    return throwError(() => errorMessage);
   }
 }

@@ -1,0 +1,15 @@
+.btn {
+  margin-left: 5px;
+}
+
+.badge {
+  font-size: 0.8rem;
+}
+
+.text-danger {
+  color: #dc3545;
+}
+
+.card {
+  margin-bottom: 20px;
+}

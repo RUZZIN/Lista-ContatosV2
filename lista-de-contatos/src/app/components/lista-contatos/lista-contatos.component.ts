@@ -1,25 +1,46 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ContatoService } from '../../services/contato.service';
 import { Contato } from '../../models/contato.model';
+import { GroupService } from '../../services/group.service';
+import { BehaviorSubject, combineLatest } from 'rxjs';
 
 @Component({
   selector: 'app-lista-contatos',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './lista-contatos.component.html',
-  styleUrl: './lista-contatos.component.css'
+  styleUrls: ['./lista-contatos.component.css']
 })
 export class ListaContatosComponent implements OnInit {
-  contatos: Contato[] = [];
-  carregando: boolean = false;
+  // Propriedades para o carregamento e tratamento de erros
+  carregando = true;
   erro: string | null = null;
+  
+  // Propriedades para os contatos
+  contatos: Contato[] = [];
+  filteredContatos: Contato[] = [];
+  
+  // Propriedades para os filtros
+  searchTerm = '';
+  selectedGroup: string | null = null;
+  showOnlyFavorites = false;
+  availableGroups: string[] = [];
+  
+  // Substituir pelas propriedades antigas se existirem
+  contatosFiltrados: Contato[] = [];
+  errorMsg: string | null = null;
 
-  constructor(private contatoService: ContatoService) {}
+  constructor(
+    private contatoService: ContatoService,
+    private groupService: GroupService
+  ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.carregarContatos();
+    this.carregarGrupos();
   }
 
   carregarContatos() {
@@ -27,31 +48,89 @@ export class ListaContatosComponent implements OnInit {
     this.erro = null;
     
     this.contatoService.getContatos().subscribe({
-      next: (contatos: Contato[]) => {
-        this.contatos = contatos;
+      next: (data) => {
+        this.contatos = data;
+        this.filteredContatos = [...data];
         this.carregando = false;
       },
-      error: (erro) => {
-        this.erro = `Erro ao carregar contatos: ${erro}`;
+      error: (error) => {
+        this.erro = `Erro ao carregar contatos: ${error}`;
         this.carregando = false;
-        console.error('Erro ao carregar contatos:', erro);
+        console.error(this.erro);
+      }
+    });
+  }
+  
+  carregarGrupos() {
+    this.groupService.getGroups().subscribe({
+      next: (grupos) => {
+        this.availableGroups = grupos;
+      },
+      error: (erro) => {
+        console.error('Erro ao carregar grupos:', erro);
       }
     });
   }
 
+  // Métodos para busca e filtros
+  searchContacts() {
+    this.applyFilters();
+  }
+  
+  filterByGroup(group: string | null) {
+    this.selectedGroup = group;
+    this.applyFilters();
+  }
+  
+  toggleFavoriteFilter() {
+    this.showOnlyFavorites = !this.showOnlyFavorites;
+    this.applyFilters();
+  }
+  
+  applyFilters() {
+    const termo = this.searchTerm.toLowerCase();
+    
+    this.filteredContatos = this.contatos.filter(contato => {
+      // Filtro por termo de busca
+      const matchesTerm = !termo || 
+        contato.nome?.toLowerCase().includes(termo) || 
+        contato.email?.toLowerCase().includes(termo) || 
+        contato.telefone?.toLowerCase().includes(termo);
+      
+      // Filtro por grupo
+      const matchesGroup = !this.selectedGroup || 
+        (contato.groups && contato.groups.includes(this.selectedGroup));
+      
+      // Filtro por favoritos
+      const matchesFavorite = !this.showOnlyFavorites || contato.isFavorite;
+      
+      return matchesTerm && matchesGroup && matchesFavorite;
+    });
+  }
+  
+  // Ações nos contatos
+  toggleFavorite(contato: Contato, event: Event) {
+    event.stopPropagation();
+    contato.isFavorite = !contato.isFavorite;
+    
+    this.contatoService.updateContato(contato.id, contato).subscribe({
+      error: (erro) => {
+        console.error('Erro ao atualizar favorito:', erro);
+        contato.isFavorite = !contato.isFavorite; // reverte em caso de erro
+      }
+    });
+  }
+  
   removerContato(id: number) {
     if (confirm('Tem certeza que deseja remover este contato?')) {
-      this.carregando = true;
-      
       this.contatoService.deleteContato(id).subscribe({
         next: () => {
-          this.carregando = false;
-          this.carregarContatos();
+          this.contatos = this.contatos.filter(c => c.id !== id);
+          this.applyFilters();
         },
         error: (erro) => {
-          this.erro = `Erro ao remover contato: ${erro}`;
-          this.carregando = false;
           console.error('Erro ao remover contato:', erro);
+          this.erro = `Erro ao remover contato: ${erro}`;
         }
       });
     }

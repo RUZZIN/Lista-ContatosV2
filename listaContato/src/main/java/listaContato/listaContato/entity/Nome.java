@@ -24,14 +24,23 @@ public class Nome {
     @Column(name = "telefone", nullable = false)
     private String telefone;
 
+    @Column(name = "grupos", nullable = false)
+    private String[] grupos;
+
+    // Temporariamente permite null
+    @Column(name = "favorito", nullable = true)
+    private Boolean favorito;
+
     public Nome() {
     }
 
-    public Nome(Long id,String nome, String email, String telefone) {
+    public Nome(Long id,String nome, String email, String telefone, String grupos[], Boolean favorito) {
         this.id = id;
         this.nome = nome;
         this.email = email;
         this.telefone = telefone;
+        this.grupos = grupos;
+        this.favorito = favorito;
     }
 
     public Long getId() {
@@ -64,5 +73,31 @@ public class Nome {
 
     public void setTelefone(String telefone) {
         this.telefone = telefone;
+    }
+
+    // Adicione este método para evitar NullPointerException
+    public String[] getGrupos() {
+        if (grupos == null) {
+            return new String[0]; // Retorna array vazio em vez de null
+        }
+        return grupos;
+    }
+
+    public void setGrupos(String grupos[]) {
+        this.grupos = grupos;
+    }
+
+    public Boolean isFavorito() {
+        return favorito != null ? favorito : false;
+    }
+
+    public void setFavorito(Boolean favorito) {
+        this.favorito = favorito;
+    }
+    
+    @Override
+    public String toString() {
+        return "Nome [id=" + id + ", nome=" + nome + ", email=" + email + ", telefone=" + telefone + ", grupos="
+                + grupos + ", favorito=" + favorito + "]";
     }
 }

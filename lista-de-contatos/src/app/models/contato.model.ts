@@ -3,4 +3,6 @@ export interface Contato {
     nome: string;
     email: string;
     telefone: string;
+    groups?: string[]; // novo campo
+    isFavorite?: boolean; // novo campo
 }

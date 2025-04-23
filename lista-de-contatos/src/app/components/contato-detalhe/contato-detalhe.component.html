@@ -11,7 +11,15 @@
 
   <!-- Detalhes do contato -->
   <div *ngIf="contato && !carregando && !erro" class="contato-detalhe">
-    <h2>Detalhes do Contato</h2>
+    <div class="header-row">
+      <h2>
+        {{ contato.nome }}
+        <button class="btn-favorite" (click)="toggleFavorite()">
+          <span *ngIf="contato.isFavorite" class="star-filled">★</span>
+          <span *ngIf="!contato.isFavorite" class="star-empty">☆</span>
+        </button>
+      </h2>
+    </div>
     
     <div class="contato-info">
       <div class="info-item">
@@ -27,6 +35,27 @@
       <div class="info-item">
         <span class="label">Telefone:</span>
         <span class="value">{{ contato.telefone }}</span>
+      </div>
+      
+      <div class="info-item">
+        <span class="label">Grupos:</span>
+        <div class="value">
+          <span *ngIf="contato.groups && contato.groups.length > 0">
+            <span *ngFor="let group of contato.groups" class="badge-group">
+              {{ group }}
+            </span>
+          </span>
+          <span *ngIf="!contato.groups || contato.groups.length === 0">
+            Nenhum grupo associado
+          </span>
+        </div>
+      </div>
+      
+      <div class="info-item">
+        <span class="label">Favorito:</span>
+        <span class="value">
+          {{ contato.isFavorite ? 'Sim' : 'Não' }}
+        </span>
       </div>
     </div>
     

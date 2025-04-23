@@ -48,6 +48,24 @@ export class ContatoDetalheComponent implements OnInit {
     }
   }
   
+  toggleFavorite(): void {
+    if (this.contato) {
+      const updatedContato = {
+        ...this.contato,
+        isFavorite: !this.contato.isFavorite
+      };
+      
+      this.contatoService.updateContato(this.contato.id, updatedContato).subscribe({
+        next: (contato) => {
+          this.contato = contato;
+        },
+        error: (erro) => {
+          console.error('Erro ao atualizar favorito:', erro);
+        }
+      });
+    }
+  }
+  
   removerContato(): void {
     if (confirm('Tem certeza que deseja remover este contato?') && this.contato) {
       this.excluindo = true;
